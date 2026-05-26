@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>龙虾批发开单</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --primary: #e85d04;
+  --primary-dark: #d44a00;
+  --primary-light: #fff0e5;
+  --success: #2d9c4a;
+  --danger: #d93025;
+  --bg: #f5f5f5;
+  --card: #fff;
+  --text: #1a1a1a;
+  --text-secondary: #666;
+  --border: #e0e0e0;
+  --radius: 10px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --tab-height: 60px;
+  --header-height: 50px;
+  --font-scale: 1;
+}
+html.large { --font-scale: 1.15; }
+html.small { --font-scale: 0.9; }
+
+/* ===== Reset ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: calc(15px * var(--font-scale));
+  background: var(--bg);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: calc(var(--tab-height) + env(safe-area-inset-bottom, 8px));
+}
+input, button, select {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+/* ===== Header ===== */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--primary);
+  color: #fff;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.header h1 { font-size: 1.1rem; font-weight: 600; }
+.header .date-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header .date-nav button {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.header .date-nav .date-text {
+  font-size: 0.9rem;
+  min-width: 100px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ===== Bottom Tabs ===== */
+.tab-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  height: var(--tab-height);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+}
+.tab-nav button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  transition: color 0.2s;
+}
+.tab-nav button .tab-icon { font-size: 1.3rem; }
+.tab-nav button.active { color: var(--primary); font-weight: 600; }
+
+/* ===== Tab Content ===== */
+.tab-content { display: none; padding: 12px 12px 20px; }
+.tab-content.active { display: block; }
+
+/* ===== Cards ===== */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-title .badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.badge-male { background: #d4e6ff; color: #1a56db; }
+.badge-female { background: #fde2e7; color: #c81d4a; }
+
+/* ===== Form Rows ===== */
+.form-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 8px;
+}
+.form-row:last-child { border-bottom: none; }
+.form-row .grade-label {
+  min-width: 55px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+.form-row .grade-label .grade-price {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--primary);
+}
+.form-row input[type="number"],
+.form-row input[type="text"] {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  text-align: right;
+  font-size: 0.95rem;
+}
+.form-row input[type="number"] { max-width: 120px; }
+.form-row .amount-display {
+  min-width: 70px;
+  text-align: right;
+  font-weight: 500;
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+.form-row .unit {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  min-width: 25px;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: opacity 0.2s;
+  min-height: 44px;
+}
+.btn:active { opacity: 0.7; }
+.btn-primary { background: var(--primary); color: #fff; width: 100%; }
+.btn-outline { border: 1.5px solid var(--primary); color: var(--primary); background: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 0.8rem; min-height: 34px; }
+.btn-block { width: 100%; }
+
+/* ===== Totals Bar ===== */
+.totals-bar {
+  position: fixed;
+  bottom: calc(var(--tab-height) + env(safe-area-inset-bottom, 0));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background: var(--card);
+  border-top: 2px solid var(--primary);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+  z-index: 90;
+}
+.totals-bar .total-item {
+  text-align: center;
+}
+.totals-bar .total-item .total-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+.totals-bar .total-item .total-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--card);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.modal-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  text-align: center;
+  font-size: 1rem;
+}
+.modal-body { padding: 16px; }
+.modal-footer {
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+.modal-footer button { flex: 1; min-height: 44px; border-radius: 8px; font-weight: 600; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.85rem;
+  z-index: 300;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+.toast-success { background: var(--success); }
+.toast-error { background: var(--danger); }
+.toast-warning { background: #e67e22; }
+
+/* ===== Bill Summary Card ===== */
+.bill-summary {
+  background: #fafafa;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 12px 0;
+}
+.bill-summary .bs-header {
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.bill-summary .bs-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 0.85rem;
+}
+.bill-summary .bs-divider {
+  border-top: 1px dashed var(--border);
+  margin: 8px 0;
+}
+.bill-summary .bs-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--primary);
+}
+
+/* ===== Summary Table ===== */
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.summary-table th, .summary-table td {
+  padding: 8px 6px;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+.summary-table th {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.summary-table .text-left { text-align: left; }
+.summary-table .text-right { text-align: right; }
+.summary-table .total-row {
+  font-weight: 700;
+  background: var(--primary-light);
+}
+.summary-table .total-row td { border-bottom: none; }
+
+/* ===== Bill List ===== */
+.bill-item {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.bill-item .bill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bill-item .bill-customer { font-weight: 600; }
+.bill-item .bill-time { font-size: 0.75rem; color: var(--text-secondary); }
+.bill-item .bill-totals {
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+.bill-item .bill-detail {
+  display: none;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 0.8rem;
+}
+.bill-item .bill-detail.open { display: block; }
+.bill-item .bill-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ===== Settings ===== */
+.grade-list-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 8px;
+}
+.grade-list-item .grade-order {
+  width: 28px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.grade-list-item .grade-name-input {
+  flex: 1;
+  padding: 6px 8px;
+  background: var(--bg);
+  border-radius: 6px;
+}
+.grade-list-item .grade-name-input:disabled {
+  background: none;
+  color: var(--text);
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+.empty-state .empty-icon { font-size: 3rem; margin-bottom: 10px; }
+.empty-state .empty-text { font-size: 0.9rem; }
+
+/* ===== Warning Banner ===== */
+.warning-banner {
+  background: #fff3cd;
+  color: #856404;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== Misc ===== */
+.section-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 12px 0 6px;
+  font-weight: 500;
+}
+.text-center { text-align: center; }
+.mt-3 { margin-top: 12px; }
+.mb-3 { margin-bottom: 12px; }
+.hidden { display: none !important; }
+.badge-confirmed {
+  font-size: 0.7rem;
+  background: #d4edda;
+  color: #155724;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🦞 龙虾开单</h1>
+  <div class="date-nav">
+    <button id="datePrev" title="前一天">&lt;</button>
+    <span class="date-text" id="dateDisplay"></span>
+    <button id="dateNext" title="后一天">&gt;</button>
+  </div>
+</div>
+
+<!-- Tab: Pricing -->
+<div class="tab-content active" id="tab-pricing">
+  <div id="pricingContent"></div>
+</div>
+
+<!-- Tab: Billing -->
+<div class="tab-content" id="tab-billing">
+  <div id="billingWarning"></div>
+  <div class="card">
+    <div class="card-title">客户信息</div>
+    <input type="text" id="customerName" placeholder="输入客户姓名..." autocomplete="off"
+      style="width:100%;padding:10px;background:var(--bg);border-radius:8px;font-size:1rem;"
+      list="customerList">
+    <datalist id="customerList"></datalist>
+  </div>
+  <div class="card" id="billingGrades"></div>
+  <div id="billResult"></div>
+  <div class="section-label">▼ 今日已开单</div>
+  <div id="todayBillsList"></div>
+</div>
+
+<!-- Tab: Summary -->
+<div class="tab-content" id="tab-summary">
+  <div id="summaryContent"></div>
+</div>
+
+<!-- Tab: Settings -->
+<div class="tab-content" id="tab-settings">
+  <div class="card">
+    <div class="card-title">规格管理</div>
+    <div id="gradeEditor"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <select id="newGradeCat" style="flex:1;padding:8px;background:var(--bg);border-radius:6px;">
+        <option value="male">公虾</option>
+        <option value="female">母虾</option>
+      </select>
+      <input type="text" id="newGradeName" placeholder="新规格名称" style="flex:2;padding:8px;background:var(--bg);border-radius:6px;">
+      <button class="btn btn-primary btn-sm" id="addGradeBtn">添加</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">数据管理</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn btn-outline btn-block" id="exportDataBtn">📤 导出全部数据</button>
+      <button class="btn btn-outline btn-block" id="importDataBtn">📥 导入数据</button>
+      <input type="file" id="importFileInput" accept=".json" class="hidden">
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">显示设置</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline btn-sm flex:1 font-btn" data-size="small">小号</button>
+      <button class="btn btn-outline btn-sm flex:1 font-btn active" data-size="medium">中号</button>
+      <button class="btn btn-outline btn-sm flex:1 font-btn" data-size="large">大号</button>
+    </div>
+  </div>
+</div>
+
+<!-- Totals Bar (visible in billing tab) -->
+<div class="totals-bar hidden" id="totalsBar">
+  <div class="total-item">
+    <div class="total-label">总重量(斤)</div>
+    <div class="total-value" id="totalWeight">0.0</div>
+  </div>
+  <div class="total-item">
+    <div class="total-label">总金额(元)</div>
+    <div class="total-value" id="totalAmount">0.00</div>
+  </div>
+  <button class="btn btn-primary" style="width:auto;padding:8px 20px;" id="completeBillBtn">完成开单</button>
+</div>
+
+<!-- Bottom Tab Nav -->
+<div class="tab-nav">
+  <button class="active" data-tab="pricing">
+    <span class="tab-icon">💰</span>定价
+  </button>
+  <button data-tab="billing">
+    <span class="tab-icon">📝</span>开单
+  </button>
+  <button data-tab="summary">
+    <span class="tab-icon">📊</span>汇总
+  </button>
+  <button data-tab="settings">
+    <span class="tab-icon">⚙️</span>设置
+  </button>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   SECTION 1: Storage Module
+   ================================================================ */
+const LS_PREFIX = 'lx_';
+
+function lsKey(name) { return LS_PREFIX + name; }
+
+function lsGet(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(lsKey(key));
+    if (raw === null) return fallback;
+    return JSON.parse(raw);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function lsSet(key, value) {
+  try {
+    localStorage.setItem(lsKey(key), JSON.stringify(value));
+    return true;
+  } catch (e) {
+    showToast('存储空间不足，请清理旧数据', 'error');
+    return false;
+  }
+}
+
+function lsRemove(key) {
+  localStorage.removeItem(lsKey(key));
+}
+
+function lsKeys() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith(LS_PREFIX)) keys.push(k.replace(LS_PREFIX, ''));
+  }
+  return keys;
+}
+
+/* ================================================================
+   SECTION 2: State & Defaults
+   ================================================================ */
+const DEFAULT_GRADES = {
+  male: [
+    { id: 'm1', name: '3条', order: 0, active: true },
+    { id: 'm2', name: '45虾', order: 1, active: true },
+    { id: 'm3', name: '单6', order: 2, active: true },
+    { id: 'm4', name: '7公', order: 3, active: true },
+    { id: 'm5', name: '8公', order: 4, active: true },
+    { id: 'm6', name: '9公', order: 5, active: true },
+    { id: 'm7', name: '两公', order: 6, active: true },
+    { id: 'm8', name: '炮公', order: 7, active: true }
+  ],
+  female: [
+    { id: 'f1', name: '6母', order: 0, active: true },
+    { id: 'f2', name: '7母', order: 1, active: true },
+    { id: 'f3', name: '8母', order: 2, active: true },
+    { id: 'f4', name: '9母', order: 3, active: true },
+    { id: 'f5', name: '两母', order: 4, active: true },
+    { id: 'f6', name: '11母', order: 5, active: true },
+    { id: 'f7', name: '炮母', order: 6, active: true }
+  ]
+};
+
+function getGrades() {
+  const saved = lsGet('grades');
+  if (saved) return saved;
+  lsSet('grades', DEFAULT_GRADES);
+  return DEFAULT_GRADES;
+}
+
+function saveGrades(grades) { lsSet('grades', grades); }
+
+function getPrices(dateStr) {
+  return lsGet('price_' + dateStr, { date: dateStr, prices: {}, confirmed: false });
+}
+
+function savePrices(dateStr, data) { lsSet('price_' + dateStr, data); }
+
+function getBills(dateStr) {
+  return lsGet('bills_' + dateStr, []);
+}
+
+function saveBills(dateStr, bills) { lsSet('bills_' + dateStr, bills); }
+
+function getSettings() {
+  const def = { fontSize: 'medium', recentCustomers: [] };
+  const s = lsGet('settings', def);
+  return Object.assign({}, def, s);
+}
+
+function saveSettings(s) { lsSet('settings', s); }
+
+/* ================================================================
+   SECTION 3: Global State
+   ================================================================ */
+const state = {
+  currentDate: new Date(),
+  grades: getGrades(),
+  activeTab: 'pricing',
+  editingBillId: null
+};
+
+function dateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
+function todayStr() { return dateStr(new Date()); }
+
+function formatDate(ds) {
+  const parts = ds.split('-');
+  return parts[0] + '年' + parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日';
+}
+
+function getAllGrades() {
+  const g = state.grades;
+  return [
+    ...g.male.filter(x => x.active).sort((a, b) => a.order - b.order).map(x => ({ ...x, cat: 'male', catName: '公虾' })),
+    ...g.female.filter(x => x.active).sort((a, b) => a.order - b.order).map(x => ({ ...x, cat: 'female', catName: '母虾' }))
+  ];
+}
+
+function getGradeById(id) {
+  const all = [...state.grades.male, ...state.grades.female];
+  return all.find(g => g.id === id);
+}
+
+/* ================================================================
+   SECTION 4: UI Utilities
+   ================================================================ */
+function showToast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast toast-' + type + ' show';
+  clearTimeout(el._timeout);
+  el._timeout = setTimeout(() => { el.className = 'toast'; }, 2000);
+}
+
+function showModal(title, bodyHtml, buttons) {
+  const overlay = document.getElementById('modalOverlay');
+  const box = document.getElementById('modalBox');
+  let footerHtml = '';
+  if (buttons && buttons.length) {
+    footerHtml = '<div class="modal-footer">' + buttons.map((b, i) =>
+      '<button class="btn ' + (b.cls || 'btn-outline') + '" data-modal-btn="' + i + '">' + b.text + '</button>'
+    ).join('') + '</div>';
+  }
+  box.innerHTML =
+    '<div class="modal-header">' + title + '</div>' +
+    '<div class="modal-body">' + bodyHtml + '</div>' + footerHtml;
+  overlay.classList.add('show');
+
+  return new Promise(resolve => {
+    box._resolve = resolve;
+    box.querySelectorAll('[data-modal-btn]').forEach(btn => {
+      btn.onclick = function() {
+        overlay.classList.remove('show');
+        resolve(parseInt(this.dataset.modalBtn));
+      };
+    });
+    overlay.onclick = function(e) {
+      if (e.target === overlay) { overlay.classList.remove('show'); resolve(-1); }
+    };
+  });
+}
+
+function formatMoney(n) { return Number(n).toFixed(2); }
+function formatWeight(n) { return Number(n).toFixed(1); }
+
+/* ================================================================
+   SECTION 5: Pricing Tab
+   ================================================================ */
+function renderPricingTab() {
+  const ds = dateStr(state.currentDate);
+  const priceData = getPrices(ds);
+  const allGrades = getAllGrades();
+  const confirmed = priceData.confirmed;
+  const bills = getBills(ds);
+
+  let maleRows = '', femaleRows = '';
+  allGrades.forEach(g => {
+    const p = priceData.prices[g.id] !== undefined ? priceData.prices[g.id] : '';
+    const rowHtml =
+      '<div class="form-row">' +
+        '<span class="grade-label">' + g.name + '</span>' +
+        '<input type="number" step="0.01" min="0" class="price-input" data-grade="' + g.id + '" value="' + p + '" placeholder="单价" ' + (confirmed ? 'disabled' : '') + '>' +
+        '<span class="unit">元/斤</span>' +
+      '</div>';
+    if (g.cat === 'male') maleRows += rowHtml;
+    else femaleRows += rowHtml;
+  });
+
+  let actionHtml = '';
+  if (confirmed) {
+    actionHtml =
+      '<div style="display:flex;gap:8px;margin-top:12px;">' +
+        '<span class="badge-confirmed" style="font-size:0.85rem;padding:6px 14px;">✅ 价格已确认</span>' +
+        '<button class="btn btn-outline btn-sm" id="modifyPriceBtn">修改价格</button>' +
+      '</div>';
+  } else {
+    actionHtml =
+      '<button class="btn btn-primary mt-3" id="confirmPriceBtn">确认今日价格</button>';
+  }
+
+  document.getElementById('pricingContent').innerHTML =
+    '<div class="card">' +
+      '<div class="card-title"><span class="badge badge-male">公虾</span> 规格单价</div>' +
+      maleRows +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="card-title"><span class="badge badge-female">母虾</span> 规格单价</div>' +
+      femaleRows +
+    '</div>' +
+    actionHtml;
+
+  // Event bindings
+  const confirmBtn = document.getElementById('confirmPriceBtn');
+  if (confirmBtn) {
+    confirmBtn.onclick = confirmPrices;
+  }
+  const modifyBtn = document.getElementById('modifyPriceBtn');
+  if (modifyBtn) {
+    modifyBtn.onclick = modifyPrices;
+  }
+}
+
+function readPriceInputs() {
+  const prices = {};
+  document.querySelectorAll('.price-input').forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (!isNaN(v) && v >= 0) {
+      prices[inp.dataset.grade] = v;
+    }
+  });
+  return prices;
+}
+
+async function confirmPrices() {
+  const prices = readPriceInputs();
+  const allGrades = getAllGrades();
+  const missing = allGrades.filter(g => prices[g.id] === undefined);
+
+  if (missing.length > 0) {
+    showToast('请填写所有规格的单价', 'warning');
+    return;
+  }
+
+  // Build review table
+  let rows = '';
+  let lastCat = '';
+  allGrades.forEach(g => {
+    if (g.catName !== lastCat) {
+      rows += '<tr><td colspan="2" style="font-weight:600;padding-top:8px;">' + g.catName + '</td></tr>';
+      lastCat = g.catName;
+    }
+    rows += '<tr><td>' + g.name + '</td><td style="text-align:right;">' + formatMoney(prices[g.id]) + ' 元/斤</td></tr>';
+  });
+
+  const bodyHtml = '<table style="width:100%;font-size:0.9rem;">' + rows + '</table>';
+  const choice = await showModal('确认今日价格', bodyHtml, [
+    { text: '返回修改', cls: 'btn-outline' },
+    { text: '确认无误', cls: 'btn-primary' }
+  ]);
+
+  if (choice === 1) {
+    const ds = dateStr(state.currentDate);
+    savePrices(ds, {
+      date: ds,
+      prices: prices,
+      confirmed: true,
+      confirmedAt: new Date().toISOString()
+    });
+    showToast('价格已确认');
+    renderPricingTab();
+  }
+}
+
+async function modifyPrices() {
+  const ds = dateStr(state.currentDate);
+  const bills = getBills(ds);
+  const warnMsg = bills.length > 0
+    ? '今日已有 <b>' + bills.length + ' 笔</b>开单记录。<br>修改价格<strong>不会影响</strong>已开单据。'
+    : '确定要修改今日价格吗？';
+
+  const choice = await showModal('修改价格确认', '<p style="text-align:center;">' + warnMsg + '</p>', [
+    { text: '取消', cls: 'btn-outline' },
+    { text: '确认修改', cls: 'btn-primary' }
+  ]);
+
+  if (choice === 1) {
+    const priceData = getPrices(ds);
+    priceData.confirmed = false;
+    savePrices(ds, priceData);
+    renderPricingTab();
+  }
+}
+
+/* ================================================================
+   SECTION 6: Billing Tab
+   ================================================================ */
+function renderBillingForm() {
+  const ds = dateStr(state.currentDate);
+  const priceData = getPrices(ds);
+  const allGrades = getAllGrades();
+
+  if (!priceData.confirmed) {
+    document.getElementById('billingWarning').innerHTML =
+      '<div class="warning-banner">⚠️ 今日价格尚未确认，请先到 <b>"定价"</b> 页面设置并确认价格</div>';
+    document.getElementById('billingGrades').innerHTML = '';
+    document.getElementById('totalsBar').classList.add('hidden');
+    return;
+  }
+
+  document.getElementById('billingWarning').innerHTML = '';
+
+  let html = '<div class="card-title">规格重量</div>';
+  let lastCat = '';
+  allGrades.forEach(g => {
+    if (g.catName !== lastCat) {
+      html += '<div class="section-label">' + g.catName + '</div>';
+      lastCat = g.catName;
+    }
+    const price = priceData.prices[g.id] || 0;
+    html +=
+      '<div class="form-row billing-row" data-grade="' + g.id + '" data-price="' + price + '">' +
+        '<span class="grade-label">' + g.name + '<span class="grade-price">@' + formatMoney(price) + '/斤</span></span>' +
+        '<input type="text" inputmode="decimal" class="weight-input" data-grade="' + g.id + '" placeholder="重量" autocomplete="off">' +
+        '<span class="unit">斤</span>' +
+        '<span class="amount-display billing-amount" data-grade="' + g.id + '">-</span>' +
+      '</div>';
+  });
+
+  document.getElementById('billingGrades').innerHTML = html;
+  document.getElementById('totalsBar').classList.remove('hidden');
+  document.getElementById('totalWeight').textContent = '0.0';
+  document.getElementById('totalAmount').textContent = '0.00';
+  document.getElementById('billResult').innerHTML = '';
+
+  // Event bindings
+  document.querySelectorAll('.weight-input').forEach(inp => {
+    inp.addEventListener('input', onWeightInput);
+  });
+  document.getElementById('completeBillBtn').onclick = completeBill;
+
+  updateCustomerDatalist();
+  renderTodayBills();
+}
+
+function parseWeight(raw) {
+  const s = raw.trim();
+  if (!s) return NaN;
+  // Support "11.3+11.5+8.2" format
+  if (s.includes('+')) {
+    const parts = s.split('+');
+    let sum = 0;
+    for (const p of parts) {
+      const v = parseFloat(p.trim());
+      if (isNaN(v)) return NaN;
+      sum += v;
+    }
+    return sum;
+  }
+  return parseFloat(s);
+}
+
+function onWeightInput(e) {
+  const gradeId = e.target.dataset.grade;
+  const row = document.querySelector('.billing-row[data-grade="' + gradeId + '"]');
+  const price = parseFloat(row.dataset.price);
+  const weight = parseWeight(e.target.value);
+
+  const amountEl = document.querySelector('.billing-amount[data-grade="' + gradeId + '"]');
+  if (isNaN(weight) || weight <= 0) {
+    amountEl.textContent = '-';
+  } else {
+    amountEl.textContent = formatMoney(weight * price);
+  }
+  updateTotals();
+}
+
+function updateTotals() {
+  let totalWeight = 0, totalAmount = 0;
+  document.querySelectorAll('.billing-row').forEach(row => {
+    const gradeId = row.dataset.grade;
+    const price = parseFloat(row.dataset.price);
+    const inp = document.querySelector('.weight-input[data-grade="' + gradeId + '"]');
+    if (!inp) return;
+    const weight = parseWeight(inp.value);
+    if (!isNaN(weight) && weight > 0) {
+      totalWeight += weight;
+      totalAmount += weight * price;
+    }
+  });
+  document.getElementById('totalWeight').textContent = formatWeight(totalWeight);
+  document.getElementById('totalAmount').textContent = formatMoney(totalAmount);
+}
+
+async function completeBill() {
+  const customerName = document.getElementById('customerName').value.trim();
+  if (!customerName) {
+    showToast('请输入客户姓名', 'warning');
+    return;
+  }
+
+  const ds = dateStr(state.currentDate);
+  const priceData = getPrices(ds);
+  const items = [];
+  let totalWeight = 0, totalAmount = 0;
+
+  document.querySelectorAll('.billing-row').forEach(row => {
+    const gradeId = row.dataset.grade;
+    const price = parseFloat(row.dataset.price);
+    const inp = document.querySelector('.weight-input[data-grade="' + gradeId + '"]');
+    if (!inp) return;
+    const weight = parseWeight(inp.value);
+    if (!isNaN(weight) && weight > 0) {
+      const grade = getGradeById(gradeId);
+      const amount = weight * price;
+      items.push({
+        gradeId: gradeId,
+        gradeName: grade ? grade.name : gradeId,
+        weight: weight,
+        unitPrice: price,
+        amount: amount
+      });
+      totalWeight += weight;
+      totalAmount += amount;
+    }
+  });
+
+  if (items.length === 0) {
+    showToast('请至少输入一个规格的重量', 'warning');
+    return;
+  }
+
+  const bill = {
+    id: 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    customerName: customerName,
+    createdAt: new Date().toISOString(),
+    items: items,
+    totalWeight: totalWeight,
+    totalAmount: totalAmount
+  };
+
+  const bills = getBills(ds);
+  if (state.editingBillId) {
+    const idx = bills.findIndex(b => b.id === state.editingBillId);
+    if (idx >= 0) {
+      bill.id = state.editingBillId;
+      bills[idx] = bill;
+    }
+    state.editingBillId = null;
+  } else {
+    bills.push(bill);
+  }
+  saveBills(ds, bills);
+
+  // Update recent customers
+  const settings = getSettings();
+  if (!settings.recentCustomers.includes(customerName)) {
+    settings.recentCustomers.unshift(customerName);
+    if (settings.recentCustomers.length > 20) settings.recentCustomers.pop();
+    saveSettings(settings);
+  }
+
+  showBillSummary(bill);
+  clearBillingForm();
+  renderTodayBills();
+  updateCustomerDatalist();
+}
+
+function showBillSummary(bill) {
+  let itemsHtml = '';
+  bill.items.forEach(item => {
+    itemsHtml +=
+      '<div class="bs-row"><span>' + item.gradeName + ' @' + formatMoney(item.unitPrice) + '/斤 × ' + formatWeight(item.weight) + '斤</span>' +
+      '<span>' + formatMoney(item.amount) + '元</span></div>';
+  });
+
+  document.getElementById('billResult').innerHTML =
+    '<div class="bill-summary" id="billSummaryCard">' +
+      '<div class="bs-header">📋 账单明细</div>' +
+      '<div class="bs-row"><span>客户</span><span><b>' + bill.customerName + '</b></span></div>' +
+      '<div class="bs-row"><span>时间</span><span>' + new Date(bill.createdAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) + '</span></div>' +
+      '<div class="bs-divider"></div>' +
+      itemsHtml +
+      '<div class="bs-divider"></div>' +
+      '<div class="bs-total"><span>总重量</span><span>' + formatWeight(bill.totalWeight) + ' 斤</span></div>' +
+      '<div class="bs-total" style="margin-top:4px;"><span>总金额</span><span>' + formatMoney(bill.totalAmount) + ' 元</span></div>' +
+      '<div style="display:flex;gap:8px;margin-top:12px;">' +
+        '<button class="btn btn-primary btn-sm flex:1" onclick="captureScreenshot()">📸 截图分享</button>' +
+        '<button class="btn btn-outline btn-sm flex:1" onclick="clearBillResult()">继续开单</button>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('totalsBar').classList.add('hidden');
+  showToast('开单成功！');
+}
+
+function clearBillResult() {
+  document.getElementById('billResult').innerHTML = '';
+  document.getElementById('totalsBar').classList.remove('hidden');
+}
+
+function clearBillingForm() {
+  document.getElementById('customerName').value = '';
+  document.querySelectorAll('.weight-input').forEach(inp => { inp.value = ''; });
+  document.querySelectorAll('.billing-amount').forEach(el => { el.textContent = '-'; });
+  document.getElementById('totalWeight').textContent = '0.0';
+  document.getElementById('totalAmount').textContent = '0.00';
+}
+
+function updateCustomerDatalist() {
+  const settings = getSettings();
+  const list = document.getElementById('customerList');
+  list.innerHTML = settings.recentCustomers.map(n => '<option value="' + n + '">').join('');
+}
+
+function renderTodayBills() {
+  const ds = dateStr(state.currentDate);
+  const bills = getBills(ds);
+  const container = document.getElementById('todayBillsList');
+
+  if (bills.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-text">今日暂无开单记录</div></div>';
+    return;
+  }
+
+  let html = '';
+  // Show most recent first
+  const reversed = [...bills].reverse();
+  reversed.forEach(bill => {
+    html +=
+      '<div class="bill-item">' +
+        '<div class="bill-header">' +
+          '<span class="bill-customer">' + bill.customerName + '</span>' +
+          '<span class="bill-time">' + new Date(bill.createdAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) + '</span>' +
+        '</div>' +
+        '<div class="bill-totals">' +
+          '<span>' + formatWeight(bill.totalWeight) + '斤</span>' +
+          '<span style="color:var(--primary);font-weight:600;">' + formatMoney(bill.totalAmount) + '元</span>' +
+        '</div>' +
+        '<div class="bill-detail" id="billDetail_' + bill.id + '">' +
+          bill.items.map(i => '<div class="bs-row"><span>' + i.gradeName + '</span><span>' + formatWeight(i.weight) + '斤 × ' + formatMoney(i.unitPrice) + ' = ' + formatMoney(i.amount) + '元</span></div>').join('') +
+        '</div>' +
+        '<div class="bill-actions">' +
+          '<button class="btn btn-outline btn-sm" onclick="toggleBillDetail(\'' + bill.id + '\')">明细</button>' +
+          '<button class="btn btn-outline btn-sm" onclick="editBill(\'' + bill.id + '\')">修改</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="deleteBill(\'' + bill.id + '\')">删除</button>' +
+        '</div>' +
+      '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function toggleBillDetail(id) {
+  const el = document.getElementById('billDetail_' + id);
+  el.classList.toggle('open');
+}
+
+function editBill(id) {
+  const ds = dateStr(state.currentDate);
+  const bills = getBills(ds);
+  const bill = bills.find(b => b.id === id);
+  if (!bill) return;
+
+  state.editingBillId = id;
+  // Switch to billing tab first (re-renders the form)
+  switchTab('billing');
+
+  // Now fill in data after the form is rendered
+  document.getElementById('customerName').value = bill.customerName;
+  document.getElementById('billResult').innerHTML = '';
+  document.getElementById('totalsBar').classList.remove('hidden');
+
+  bill.items.forEach(item => {
+    const inp = document.querySelector('.weight-input[data-grade="' + item.gradeId + '"]');
+    if (inp) {
+      inp.value = item.weight;
+      inp.dispatchEvent(new Event('input'));
+    }
+  });
+
+  updateTotals();
+  showToast('正在修改单据，修改后点击"完成开单"保存', 'warning');
+}
+
+async function deleteBill(id) {
+  const choice = await showModal('确认删除', '<p style="text-align:center;">确定要删除这笔单据吗？<br>此操作不可恢复。</p>', [
+    { text: '取消', cls: 'btn-outline' },
+    { text: '确认删除', cls: 'btn-danger' }
+  ]);
+  if (choice !== 1) return;
+
+  const ds = dateStr(state.currentDate);
+  const bills = getBills(ds);
+  const filtered = bills.filter(b => b.id !== id);
+  saveBills(ds, filtered);
+  renderTodayBills();
+  showToast('已删除');
+}
+
+/* ================================================================
+   SECTION 7: Screenshot Module
+   ================================================================ */
+function loadHtml2canvas() {
+  if (window.html2canvas) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('截图库加载失败，请检查网络'));
+    document.head.appendChild(script);
+  });
+}
+
+async function captureScreenshot() {
+  const card = document.getElementById('billSummaryCard');
+  if (!card) return;
+
+  try {
+    showToast('正在生成截图...', 'warning');
+    await loadHtml2canvas();
+
+    // Create a clean clone for screenshot
+    const clone = card.cloneNode(true);
+    clone.style.position = 'fixed';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    clone.style.width = '360px';
+    clone.style.background = '#fff';
+    clone.style.padding = '20px';
+    clone.style.borderRadius = '0';
+    clone.style.border = 'none';
+    document.body.appendChild(clone);
+
+    const canvas = await html2canvas(clone, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false
+    });
+
+    document.body.removeChild(clone);
+
+    // Try Web Share API
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], '账单_' + dateStr(state.currentDate) + '.png', { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: '龙虾账单',
+            text: '账单明细',
+            files: [file]
+          });
+          showToast('分享成功');
+          return;
+        } catch (e) {
+          // User cancelled or not supported, fall through to download
+        }
+      }
+
+      // Fallback: download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '账单_' + dateStr(state.currentDate) + '_' + Date.now() + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('截图已保存');
+    }, 'image/png');
+
+  } catch (e) {
+    showToast(e.message || '截图失败，请手动截屏', 'error');
+  }
+}
+
+/* ================================================================
+   SECTION 8: Summary Tab
+   ================================================================ */
+function renderSummaryTab() {
+  const ds = dateStr(state.currentDate);
+  const bills = getBills(ds);
+  const priceData = getPrices(ds);
+
+  if (bills.length === 0) {
+    document.getElementById('summaryContent').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">今日暂无开单记录</div></div>';
+    return;
+  }
+
+  // Aggregate by grade
+  const agg = {}; // { gradeId: { gradeName, totalWeight, unitPrice, totalAmount } }
+  bills.forEach(bill => {
+    bill.items.forEach(item => {
+      if (!agg[item.gradeId]) {
+        agg[item.gradeId] = {
+          gradeName: item.gradeName,
+          unitPrice: item.unitPrice,
+          totalWeight: 0,
+          totalAmount: 0
+        };
+      }
+      agg[item.gradeId].totalWeight += item.weight;
+      agg[item.gradeId].totalAmount += item.amount;
+    });
+  });
+
+  const allGrades = getAllGrades();
+  let summaryRows = '';
+  let grandWeight = 0, grandAmount = 0;
+  let lastCat = '';
+
+  allGrades.forEach(g => {
+    const a = agg[g.id];
+    if (!a) return;
+    if (g.catName !== lastCat) {
+      summaryRows += '<tr><td colspan="4" style="font-weight:600;padding-top:8px;text-align:left;">' + g.catName + '</td></tr>';
+      lastCat = g.catName;
+    }
+    summaryRows +=
+      '<tr>' +
+        '<td class="text-left">' + a.gradeName + '</td>' +
+        '<td>' + formatMoney(a.unitPrice) + '</td>' +
+        '<td class="text-right">' + formatWeight(a.totalWeight) + ' 斤</td>' +
+        '<td class="text-right">' + formatMoney(a.totalAmount) + ' 元</td>' +
+      '</tr>';
+    grandWeight += a.totalWeight;
+    grandAmount += a.totalAmount;
+  });
+
+  // Bill list
+  let billListHtml = '';
+  const reversed = [...bills].reverse();
+  reversed.forEach(bill => {
+    billListHtml +=
+      '<div class="bill-item">' +
+        '<div class="bill-header">' +
+          '<span class="bill-customer">' + bill.customerName + '</span>' +
+          '<span class="bill-time">' + new Date(bill.createdAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) + '</span>' +
+        '</div>' +
+        '<div class="bill-totals">' +
+          '<span>' + formatWeight(bill.totalWeight) + '斤</span>' +
+          '<span style="color:var(--primary);font-weight:600;">' + formatMoney(bill.totalAmount) + '元</span>' +
+        '</div>' +
+        '<div class="bill-detail" id="billDetail_' + bill.id + '">' +
+          bill.items.map(i => '<div class="bs-row"><span>' + i.gradeName + '</span><span>' + formatWeight(i.weight) + '斤 × ' + formatMoney(i.unitPrice) + ' = ' + formatMoney(i.amount) + '元</span></div>').join('') +
+        '</div>' +
+        '<div style="margin-top:4px;">' +
+          '<button class="btn btn-outline btn-sm" onclick="toggleBillDetail(\'' + bill.id + '\')">明细</button>' +
+        '</div>' +
+      '</div>';
+  });
+
+  document.getElementById('summaryContent').innerHTML =
+    '<div class="card">' +
+      '<div class="card-title">📊 收购汇总</div>' +
+      '<table class="summary-table">' +
+        '<thead><tr><th class="text-left">规格</th><th>单价</th><th class="text-right">总重量</th><th class="text-right">总金额</th></tr></thead>' +
+        '<tbody>' + summaryRows +
+        '<tr class="total-row"><td><b>合计</b></td><td>-</td><td class="text-right"><b>' + formatWeight(grandWeight) + ' 斤</b></td><td class="text-right"><b>' + formatMoney(grandAmount) + ' 元</b></td></tr>' +
+        '</tbody>' +
+      '</table>' +
+    '</div>' +
+    '<button class="btn btn-outline btn-block mt-3" id="copySummaryBtn">📋 复制汇总文本</button>' +
+    '<div class="section-label mt-3">▼ 今日账单明细 (' + bills.length + '笔)</div>' +
+    billListHtml;
+
+  document.getElementById('copySummaryBtn').onclick = function() {
+    copySummaryText(agg, allGrades, grandWeight, grandAmount, bills);
+  };
+}
+
+function copySummaryText(agg, allGrades, grandWeight, grandAmount, bills) {
+  let text = '=== ' + formatDate(dateStr(state.currentDate)) + ' 收购汇总 ===\n\n';
+  let lastCat = '';
+  allGrades.forEach(g => {
+    const a = agg[g.id];
+    if (!a) return;
+    if (g.catName !== lastCat) {
+      text += '【' + g.catName + '】\n';
+      lastCat = g.catName;
+    }
+    text += a.gradeName + '\t' + formatWeight(a.totalWeight) + '斤\t' + formatMoney(a.totalAmount) + '元\n';
+  });
+  text += '\n总计：' + formatWeight(grandWeight) + '斤，' + formatMoney(grandAmount) + '元\n';
+  text += '共 ' + bills.length + ' 笔单据\n';
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('已复制到剪贴板');
+    }).catch(() => {
+      showToast('复制失败，请手动选择文字', 'error');
+    });
+  } else {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('已复制到剪贴板');
+  }
+}
+
+/* ================================================================
+   SECTION 9: Settings Tab
+   ================================================================ */
+function renderSettingsTab() {
+  renderGradeEditor();
+  updateFontButtons();
+}
+
+function renderGradeEditor() {
+  const g = state.grades;
+  let html = '';
+
+  [{ key: 'male', label: '公虾' }, { key: 'female', label: '母虾' }].forEach(cat => {
+    html += '<div class="section-label"><span class="badge ' + (cat.key === 'male' ? 'badge-male' : 'badge-female') + '">' + cat.label + '</span></div>';
+    const sorted = [...g[cat.key]].sort((a, b) => a.order - b.order);
+    sorted.forEach(grade => {
+      html +=
+        '<div class="grade-list-item" data-grade-id="' + grade.id + '" data-cat="' + cat.key + '">' +
+          '<span class="grade-order">' + (grade.order + 1) + '</span>' +
+          '<input type="text" class="grade-name-input" value="' + grade.name + '" data-grade-id="' + grade.id + '">' +
+          '<button class="btn btn-outline btn-sm" onclick="moveGrade(\'' + cat.key + '\',\'' + grade.id + '\',-1)">▲</button>' +
+          '<button class="btn btn-outline btn-sm" onclick="moveGrade(\'' + cat.key + '\',\'' + grade.id + '\',1)">▼</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="deleteGrade(\'' + cat.key + '\',\'' + grade.id + '\')">✕</button>' +
+        '</div>';
+    });
+  });
+
+  document.getElementById('gradeEditor').innerHTML = html;
+
+  // Bind name change events
+  document.querySelectorAll('.grade-name-input').forEach(inp => {
+    inp.addEventListener('change', function() {
+      saveGradeName(this.dataset.gradeId, this.value.trim());
+    });
+  });
+}
+
+function saveGradeName(id, newName) {
+  if (!newName) return;
+  const g = state.grades;
+  let found = g.male.find(x => x.id === id);
+  if (found) { found.name = newName; }
+  else {
+    found = g.female.find(x => x.id === id);
+    if (found) found.name = newName;
+  }
+  saveGrades(g);
+  state.grades = g;
+  showToast('规格名称已更新');
+}
+
+function addGrade() {
+  const cat = document.getElementById('newGradeCat').value;
+  const name = document.getElementById('newGradeName').value.trim();
+  if (!name) { showToast('请输入规格名称', 'warning'); return; }
+
+  const g = state.grades;
+  const list = g[cat];
+  const maxOrder = list.reduce((max, x) => Math.max(max, x.order), -1);
+  const newId = (cat === 'male' ? 'm' : 'f') + (Date.now());
+  list.push({ id: newId, name: name, order: maxOrder + 1, active: true });
+  saveGrades(g);
+  state.grades = g;
+  document.getElementById('newGradeName').value = '';
+  renderGradeEditor();
+  showToast('规格已添加');
+}
+
+function deleteGrade(cat, id) {
+  const g = state.grades;
+  g[cat] = g[cat].filter(x => x.id !== id);
+  saveGrades(g);
+  state.grades = g;
+  renderGradeEditor();
+  showToast('规格已删除');
+}
+
+function moveGrade(cat, id, delta) {
+  const g = state.grades;
+  const list = g[cat].sort((a, b) => a.order - b.order);
+  const idx = list.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  const newIdx = idx + delta;
+  if (newIdx < 0 || newIdx >= list.length) return;
+
+  // Swap orders
+  const tmp = list[idx].order;
+  list[idx].order = list[newIdx].order;
+  list[newIdx].order = tmp;
+  saveGrades(g);
+  state.grades = g;
+  renderGradeEditor();
+}
+
+function updateFontButtons() {
+  const settings = getSettings();
+  document.querySelectorAll('.font-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.size === settings.fontSize);
+  });
+}
+
+/* ================================================================
+   SECTION 10: Data Export / Import
+   ================================================================ */
+function exportAllData() {
+  const data = {};
+  lsKeys().forEach(k => {
+    data[k] = lsGet(k);
+  });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '龙虾开单_备份_' + dateStr(new Date()) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('数据已导出');
+}
+
+function importAllData(file) {
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      const keys = Object.keys(data);
+      if (keys.length === 0) {
+        showToast('文件中没有数据', 'error');
+        return;
+      }
+      const choice = await showModal('导入数据确认',
+        '<p style="text-align:center;">将导入 <b>' + keys.length + '</b> 条数据记录。<br><br>⚠️ 现有数据将被覆盖！</p>',
+        [{ text: '取消', cls: 'btn-outline' }, { text: '确认导入', cls: 'btn-primary' }]
+      );
+      if (choice !== 1) return;
+
+      keys.forEach(k => { lsSet(k, data[k]); });
+      state.grades = getGrades();
+      // Reset to today
+      state.currentDate = new Date();
+      updateDateDisplay();
+      refreshAll();
+      showToast('数据导入成功');
+    } catch (err) {
+      showToast('文件格式错误', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ================================================================
+   SECTION 11: App Shell & Navigation
+   ================================================================ */
+function switchTab(tabName) {
+  state.activeTab = tabName;
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-nav button').forEach(el => el.classList.remove('active'));
+
+  const tabEl = document.getElementById('tab-' + tabName);
+  if (tabEl) tabEl.classList.add('active');
+  const navBtn = document.querySelector('.tab-nav button[data-tab="' + tabName + '"]');
+  if (navBtn) navBtn.classList.add('active');
+
+  // Show/hide totals bar
+  const totalsBar = document.getElementById('totalsBar');
+  if (tabName === 'billing') {
+    const priceData = getPrices(dateStr(state.currentDate));
+    if (priceData.confirmed && !document.getElementById('billSummaryCard')) {
+      totalsBar.classList.remove('hidden');
+    } else {
+      totalsBar.classList.add('hidden');
+    }
+  } else {
+    totalsBar.classList.add('hidden');
+  }
+
+  if (tabName === 'pricing') renderPricingTab();
+  if (tabName === 'billing') renderBillingForm();
+  if (tabName === 'summary') renderSummaryTab();
+  if (tabName === 'settings') renderSettingsTab();
+}
+
+function updateDateDisplay() {
+  document.getElementById('dateDisplay').textContent = formatDate(dateStr(state.currentDate));
+}
+
+function goToDate(delta) {
+  state.currentDate.setDate(state.currentDate.getDate() + delta);
+  // Don't go into future
+  const today = new Date();
+  if (state.currentDate > today) {
+    state.currentDate = today;
+  }
+  updateDateDisplay();
+  refreshAll();
+}
+
+function refreshAll() {
+  // Reset billing state
+  state.editingBillId = null;
+  document.getElementById('billResult').innerHTML = '';
+  document.getElementById('customerName').value = '';
+  const pi = getPrices(dateStr(state.currentDate));
+  if (!pi.confirmed) {
+    document.getElementById('totalsBar').classList.add('hidden');
+  }
+  switchTab(state.activeTab);
+}
+
+/* ================================================================
+   SECTION 12: Initialization
+   ================================================================ */
+function init() {
+  // Apply font size
+  const settings = getSettings();
+  document.documentElement.className = settings.fontSize === 'large' ? 'large' : settings.fontSize === 'small' ? 'small' : '';
+
+  // Set date display
+  updateDateDisplay();
+
+  // Tab navigation
+  document.querySelectorAll('.tab-nav button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      switchTab(this.dataset.tab);
+    });
+  });
+
+  // Date navigation
+  document.getElementById('datePrev').addEventListener('click', () => goToDate(-1));
+  document.getElementById('dateNext').addEventListener('click', () => goToDate(1));
+
+  // Settings events
+  document.getElementById('addGradeBtn').addEventListener('click', addGrade);
+  document.getElementById('exportDataBtn').addEventListener('click', exportAllData);
+  document.getElementById('importDataBtn').addEventListener('click', () => {
+    document.getElementById('importFileInput').click();
+  });
+  document.getElementById('importFileInput').addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      importAllData(this.files[0]);
+      this.value = '';
+    }
+  });
+
+  // Font size buttons
+  document.querySelectorAll('.font-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const size = this.dataset.size;
+      const settings = getSettings();
+      settings.fontSize = size;
+      saveSettings(settings);
+      document.documentElement.className = size === 'large' ? 'large' : size === 'small' ? 'small' : '';
+      updateFontButtons();
+    });
+  });
+
+  // Start on pricing tab
+  switchTab('pricing');
+
+  // Auto-refresh on date change (check at midnight)
+  setInterval(() => {
+    const newDate = todayStr();
+    const currentDate = dateStr(state.currentDate);
+    if (state.activeTab === 'pricing' || state.activeTab === 'billing') {
+      // Only auto-switch if it's a new day and currently looking at today
+      const today = new Date();
+      if (dateStr(today) !== dateStr(state.currentDate)) {
+        state.currentDate = today;
+        updateDateDisplay();
+        refreshAll();
+      }
+    }
+  }, 60000);
+}
+
+// Make functions available globally for onclick handlers
+window.toggleBillDetail = toggleBillDetail;
+window.editBill = editBill;
+window.deleteBill = deleteBill;
+window.captureScreenshot = captureScreenshot;
+window.clearBillResult = clearBillResult;
+window.moveGrade = moveGrade;
+window.deleteGrade = deleteGrade;
+
+// Boot
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
